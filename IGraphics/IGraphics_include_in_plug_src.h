@@ -69,7 +69,13 @@
   #elif defined OS_WEB
   IGraphics* MakeGraphics(IGEditorDelegate& dlg, int w, int h, int fps = 0, float scale = 1.)
   {
-    gGraphics = new IGraphicsWeb(dlg, w, h, fps, scale);
+    IGraphicsWeb* gGraphics = new IGraphicsWeb(dlg, w, h, fps, scale);
+    return gGraphics;
+  }
+  #elif defined OS_LINUX
+  IGraphics* MakeGraphics(IGEditorDelegate& dlg, int w, int h, int fps = 0, float scale = 1.)
+  {
+    IGraphicsLinux* gGraphics = new IGraphicsLinux(dlg, w, h, fps, scale);
     return gGraphics;
   }
   #else

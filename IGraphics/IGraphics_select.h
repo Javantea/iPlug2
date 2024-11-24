@@ -41,6 +41,9 @@
       #elif defined IGRAPHICS_GL3
         #include <OpenGL/gl3.h>
       #endif
+    #elif defined OS_LINUX
+      //#include <GL/gl.h>
+      #include <glad/glad.h>
     #else
       #include <OpenGL/gl.h>
     #endif
@@ -56,7 +59,7 @@
      #include "IGraphicsCanvas.h"
      #define IGRAPHICS_DRAW_CLASS_TYPE IGraphicsCanvas
     #if defined IGRAPHICS_GL || defined IGRAPHICS_METAL
-      #error When using IGRAPHICS_CANVAS, don't define IGRAPHICS_METAL or IGRAPHICS_GL*
+      #error "When using IGRAPHICS_CANVAS, don't define IGRAPHICS_METAL or IGRAPHICS_GL*"
     #endif
   #else
     #error NO IGRAPHICS_MODE defined

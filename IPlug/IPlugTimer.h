@@ -27,6 +27,13 @@
 
 #include "IPlugPlatform.h"
 
+#if defined OS_LINUX && defined APP_API
+#include "swell.h"
+#elif defined OS_LINUX
+#include <signal.h>
+#include <time.h>
+#endif
+
 #if defined OS_MAC || defined OS_IOS
 #include <CoreFoundation/CoreFoundation.h>
 #elif defined OS_WEB
@@ -66,7 +73,7 @@ private:
   ITimerFunction mTimerFunc;
   uint32_t mIntervalMs;
 };
-#elif defined OS_WIN
+#elif defined OS_WIN || (defined OS_LINUX && defined APP_API)
 class Timer_impl : public Timer
 {
 public:
@@ -95,6 +102,31 @@ private:
   long ID = 0;
   ITimerFunction mTimerFunc;
 };
+#elif defined OS_LINUX
+// other API on Linux do not support unrelated timers
+class Timer_impl : public Timer
+{
+public:
+  Timer_impl(ITimerFunction func, uint32_t intervalMs);
+  ~Timer_impl();
+
+  void Stop() override;
+  static void NotifyCallback(union sigval v);
+
+
+private:
+  static WDL_Mutex sMutex;
+  static WDL_PtrList<Timer_impl> sTimers;
+
+#if IPLUG_EDITOR
+  uint32_t mID;
+#else
+  timer_t mID;
+#endif
+  ITimerFunction mTimerFunc;
+  uint32_t mIntervalMs;
+};
+
 #else
   #error NOT IMPLEMENTED
 #endif
