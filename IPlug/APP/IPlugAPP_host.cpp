@@ -635,15 +635,8 @@ bool IPlugAPPHost::InitAudio(uint32_t inId, uint32_t outId, uint32_t sr, uint32_
 
   mBufferSize = iovs; // mBufferSize may get changed by stream
 
-#if RTAUDIO_VERSION_MAJOR >= 6
-  RtAudio::DeviceInfo oinfo = mDAC->getDeviceInfo(outId);
-  RtAudio::DeviceInfo iinfo = mDAC->getDeviceInfo(inId);
-  DBGMSG("\ntrying to start audio stream @ %i sr, %i buffer size\nindev = %i:%s\noutdev = %i:%s\ninputs = %i\noutputs = %i\n",
-         sr, mBufferSize, inId, iinfo.name.c_str(), outId, oinfo.name.c_str(), iParams.nChannels, oParams.nChannels);
-#else
   DBGMSG("\ntrying to start audio stream @ %i sr, %i buffer size\nindev = %i:%s\noutdev = %i:%s\ninputs = %i\noutputs = %i\n",
          sr, mBufferSize, inId, GetAudioDeviceName(inId).c_str(), outId, GetAudioDeviceName(outId).c_str(), iParams.nChannels, oParams.nChannels);
-#endif
 
   RtAudio::StreamOptions options;
   options.flags = RTAUDIO_NONINTERLEAVED;
@@ -675,6 +668,12 @@ bool IPlugAPPHost::InitAudio(uint32_t inId, uint32_t outId, uint32_t sr, uint32_
   for (int i = 0; i < oParams.nChannels; i++)
   {
     mOutputBufPtrs.Add(nullptr); //will be set in callback
+  }
+  if (!mDAC->isStreamOpen())
+  {
+    // TODO: Do we actually reject here?
+    std::cout << "Stream not open: " << inId << " out: " << outId << std::endl;
+    return false;
   }
 
   mDAC->startStream();
@@ -774,6 +773,8 @@ int IPlugAPPHost::AudioCallback(void* pOutputBuffer, void* pInputBuffer, uint32_
   bool startWait = _this->mVecWait >= APP_N_VECTOR_WAIT; // wait APP_N_VECTOR_WAIT * iovs before processing audio, to avoid clicks
   bool doFade = _this->mVecWait == APP_N_VECTOR_WAIT || _this->mAudioEnding;
   
+  // Useful debug message for when this fails since it's being called by a thread callback and gdb doesn't like that.
+  //std::cout << "AudioCallback Frames " << nFrames << std::endl;
   if (startWait && !_this->mAudioDone)
   {
     if (doFade)

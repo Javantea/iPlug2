@@ -151,11 +151,15 @@ void IPlugAPP::AppProcess(double** inputs, double** outputs, int nFrames)
   
   if(mMidiMsgsFromCallback.ElementsAvailable())
   {
+    //std::cout << "mMidiMsgsFromCallback " << mMidiMsgsFromCallback.ElementsAvailable() << std::endl;
     IMidiMsg msg;
     
     while (mMidiMsgsFromCallback.Pop(msg))
     {
+      // FIXME: When both input and output are connected to midi thru (yes this can happen) we get an issue here that needs to be resolved.
+      // Detect and Fix!
       ProcessMidiMsg(msg);
+      //std::cout << "processed " << ((int)msg.mStatus) << std::endl;
       mMidiMsgsFromProcessor.Push(msg); // queue incoming MIDI for UI
     }
   }
