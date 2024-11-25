@@ -7,7 +7,7 @@ CC = gcc
 CPP = g++
 CXX = g++
 
-OBJS = asyncdns.o connection.o httpget.o httpserv.o listen.o util.o sercon.o
+OBJS = asyncdns.o connection.o httpget.o httpserv.o listen.o util.o #sercon.o
 
 jnl.a: ${OBJS}
 	-rm -f jnl.a

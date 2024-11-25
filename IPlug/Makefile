@@ -1,4 +1,4 @@
-CXXFLAGS=-I. -DAPP_API -I./APP -I../WDL -I../IGraphics -I./Extras -I../IGraphics/Platforms -I../IGraphics/Controls -I../Dependencies/IGraphics/NanoSVG/src -DIGRAPHICS_NANOVG -I../IGraphics/Drawing -I../Dependencies/IGraphics/NanoVG/src -I../WDL/swell -DNOMINMAX -DIGRAPHICS_GL2 -I../Dependencies/IGraphics/xcbt
+CXXFLAGS=-I. -DAPP_API -I./APP -I../WDL -I../IGraphics -I./Extras -I../IGraphics/Platforms -I../IGraphics/Controls -I../Dependencies/IGraphics/NanoSVG/src -DIGRAPHICS_NANOVG -I../IGraphics/Drawing -I../Dependencies/IGraphics/NanoVG/src -I../WDL/swell -DNOMINMAX -DIGRAPHICS_GL2 -I../Dependencies/IGraphics/xcbt -ggdb -O2 -Wall
 
 SOURCES = ./IPlugPluginBase.cpp ./IPlugPaths.cpp ./Extras/OSC/IPlugOSC.cpp ./Extras/OSC/IPlugOSC_msg.cpp ./Extras/Synth/MidiSynth.cpp ./Extras/Synth/VoiceAllocator.cpp ./Extras/HIIR/PolyphaseIIR2Designer.cpp ./IPlugTimer.cpp ./IPlugParameter.cpp ./IPlugAPIBase.cpp ./IPlugProcessor.cpp
 
@@ -14,9 +14,10 @@ ifdef WEB
 SOURCES += ./WEB/IPlugWeb.cpp ./WEB/IPlugWAM.cpp
 endif
 
-ifdef APP
-SOURCES += ./APP/IPlugAPP_host.cpp ./APP/IPlugAPP_main.cpp ./APP/IPlugAPP.cpp ./APP/IPlugAPP_dialog.cpp
-endif
+# Not part of the lib
+#ifdef APP
+#SOURCES += ./APP/IPlugAPP_host.cpp ./APP/IPlugAPP_main.cpp ./APP/IPlugAPP.cpp ./APP/IPlugAPP_dialog.cpp
+#endif
 
 ifdef VST2
 SOURCES += ./VST2/IPlugVST2.cpp

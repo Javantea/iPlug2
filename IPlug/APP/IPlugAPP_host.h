@@ -56,6 +56,8 @@
   #define DEFAULT_INPUT_DEV "Built-in Input"
   #define DEFAULT_OUTPUT_DEV "Built-in Output"
 #elif defined(OS_LINUX)
+  #define DEFAULT_INPUT_DEV "default"
+  #define DEFAULT_OUTPUT_DEV "default"
   #include "IPlugSWELL.h"
 #endif
 
@@ -170,8 +172,12 @@ public:
   
   IPlugAPPHost();
   ~IPlugAPPHost();
-  
+
+#ifdef OS_LINUX
+  bool OpenWindow(void *pParent);
+#else
   bool OpenWindow(HWND pParent);
+#endif
   void CloseWindow();
 
   bool Init();
@@ -209,8 +215,12 @@ public:
   
   static int AudioCallback(void* pOutputBuffer, void* pInputBuffer, uint32_t nFrames, double streamTime, RtAudioStreamStatus status, void* pUserData);
   static void MIDICallback(double deltatime, std::vector<uint8_t>* pMsg, void* pUserData);
-  static void ErrorCallback(RtAudioError::Type type, const std::string& errorText);
 
+#if RTAUDIO_VERSION_MAJOR >= 6
+  static void ErrorCallback(RtAudioErrorType type, const std::string& errorText);
+#else
+  static void ErrorCallback(RtAudioError::Type type, const std::string& errorText);
+#endif
   static WDL_DLGRET PreferencesDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
   static WDL_DLGRET MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -254,6 +264,12 @@ private:
   
   WDL_PtrList<double> mInputBufPtrs;
   WDL_PtrList<double> mOutputBufPtrs;
+
+#ifdef OS_LINUX
+  /** Site for embedding plug-in */
+  HWND mSite = nullptr;
+  void* mSiteWnd = 0; // XID
+#endif
 
   friend class IPlugAPP;
 };

@@ -1134,6 +1134,23 @@ void IGraphicsLinux::MoveMouseCursor(float x, float y)
   mCursorY = mMouseLockPos.y;
 }
 
+ECursor IGraphicsLinux::SetMouseCursor(ECursor cursorType)
+{
+  // TODO:
+  return IGraphics::SetMouseCursor(cursorType);
+}
+
+void IGraphicsLinux::ForceEndUserEdit()
+{
+  // NO-OP
+}
+
+EMsgBoxResult IGraphicsLinux::ShowMessageBox(const char* str, const char* title, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler)
+{
+  // TODO:
+  EMsgBoxResult result = kNoResult;
+  return result;
+}
 /*
 EMsgBoxResult IGraphicsLinux::ShowMessageBox(const char* text, const char* caption, EMsgBoxType type, IMsgBoxCompletionHanderFunc completionHandler)
 {

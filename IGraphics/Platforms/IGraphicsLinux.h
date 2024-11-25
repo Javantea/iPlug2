@@ -41,9 +41,9 @@ public:
   EMsgBoxResult ShowMessageBox(const char* str, const char* title, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler) override;
   void ForceEndUserEdit() override;
 
-  const char* GetPlatformAPIStr() override;
+  const char* GetPlatformAPIStr() override { return "Linux"; }
 
-  void UpdateTooltips() override;
+  void UpdateTooltips() override {};
 
   bool RevealPathInExplorerOrFinder(WDL_String& path, bool select) override;
   void PromptForFile(WDL_String& fileName, WDL_String& path, EFileAction action, const char* ext, IFileDialogCompletionHandlerFunc completionHandler) override;
@@ -63,8 +63,9 @@ public:
   void SetIntegration(void* mainLoop);
 
 protected:
-  IPopupMenu* CreatePlatformPopupMenu(IPopupMenu& menu, const IRECT bounds, bool& isAsync) override;
-  void CreatePlatformTextEntry(int paramIdx, const IText& text, const IRECT& bounds, int length, const char* str) override;
+  IPopupMenu* CreatePlatformPopupMenu(IPopupMenu& menu, const IRECT bounds, bool& isAsync) override { /* NO-OP */ return nullptr; } // TODO
+
+  void CreatePlatformTextEntry(int paramIdx, const IText& text, const IRECT& bounds, int length, const char* str) override {}; // TODO?
   void RequestFocus();
 
 private:
@@ -83,7 +84,7 @@ private:
   xcbt_window_handler mBaseWindowHandler;
   void* mBaseWindowData;
 
-  void CachePlatformFont(const char* fontID, const PlatformFontPtr& font) override;
+  void CachePlatformFont(const char* fontID, const PlatformFontPtr& font) override {}; // unnecessary
   uint32_t GetUserDblClickTimeout();
 
   /** Double-click timeout in milliseconds */

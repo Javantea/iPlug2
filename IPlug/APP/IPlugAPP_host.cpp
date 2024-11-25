@@ -72,7 +72,11 @@ bool IPlugAPPHost::Init()
   return true;
 }
 
+#ifdef OS_LINUX
+bool IPlugAPPHost::OpenWindow(void *pParent)
+#else
 bool IPlugAPPHost::OpenWindow(HWND pParent)
+#endif
 {
   return mIPlug->OpenWindow(pParent) != nullptr;
 }
@@ -90,8 +94,10 @@ bool IPlugAPPHost::InitState()
   mINIPath.SetFormatted(MAX_PATH_LEN, "%s\\%s\\", strPath, BUNDLE_NAME);
 #elif defined OS_MAC
   mINIPath.SetFormatted(MAX_PATH_LEN, "%s/Library/Application Support/%s/", getenv("HOME"), BUNDLE_NAME);
+#elif defined OS_LINUX
+  mINIPath.SetFormatted(MAX_PATH_LEN, "%s/.config/%s/", getenv("HOME"), BUNDLE_NAME);
 #else
-  #error NOT IMPLEMENTED
+  #warning NOT IMPLEMENTED
 #endif
 
   struct stat st;
@@ -139,7 +145,7 @@ bool IPlugAPPHost::InitState()
     CreateDirectory(mINIPath.Get(), NULL);
     mINIPath.Append("settings.ini");
     UpdateINI(); // will write file if doesn't exist
-#elif defined OS_MAC
+#elif defined OS_MAC || defined OS_LINUX
     mode_t process_mask = umask(0);
     int result_code = mkdir(mINIPath.Get(), S_IRWXU | S_IRWXG | S_IRWXO);
     umask(process_mask);
@@ -154,7 +160,7 @@ bool IPlugAPPHost::InitState()
       return false;
     }
 #else
-  #error NOT IMPLEMENTED
+  #warning NOT IMPLEMENTED
 #endif
   }
 
@@ -201,7 +207,12 @@ void IPlugAPPHost::UpdateINI()
 
 std::string IPlugAPPHost::GetAudioDeviceName(int idx) const
 {
+#if RTAUDIO_VERSION_MAJOR < 6
   return mAudioIDDevNames.at(idx);
+#else
+        RtAudio::DeviceInfo info = mDAC->getDeviceInfo(idx);
+        return info.name;
+#endif
 }
 
 int IPlugAPPHost::GetAudioDeviceIdx(const char* deviceNameToTest) const
@@ -263,11 +274,18 @@ void IPlugAPPHost::ProbeAudioIO()
   mAudioOutputDevs.clear();
   mAudioIDDevNames.clear();
 
+#if RTAUDIO_VERSION_MAJOR < 6
   uint32_t nDevices = mDAC->getDeviceCount();
 
   for (int i=0; i<nDevices; i++)
   {
     info = mDAC->getDeviceInfo(i);
+#else
+  // RtAudio devices are device ids not integers.
+  auto deviceIds = mDAC->getDeviceIds();
+  for (int i : deviceIds) {
+    info = mDAC->getDeviceInfo(i);
+#endif
     std::string deviceName = info.name;
     
 #ifdef OS_MAC
@@ -280,11 +298,17 @@ void IPlugAPPHost::ProbeAudioIO()
     
     mAudioIDDevNames.push_back(deviceName);
 
+#if RTAUDIO_VERSION_MAJOR < 6
     if ( info.probed == false )
       std::cout << deviceName << ": Probe Status = Unsuccessful\n";
     else if ( !strcmp("Generic Low Latency ASIO Driver", deviceName.c_str() ))
       std::cout << deviceName << ": Probe Status = Unsuccessful\n";
     else
+#else
+    if ( !strcmp("Generic Low Latency ASIO Driver", deviceName.c_str() ))
+      std::cout << deviceName << ": Probe Status = Unsuccessful\n";
+    else
+#endif
     {
       if(info.inputChannels > 0)
         mAudioInputDevs.push_back(i);
@@ -381,6 +405,13 @@ bool IPlugAPPHost::TryToChangeAudioDriverType()
     mDAC = std::make_unique<RtAudio>(RtAudio::MACOSX_CORE);
   //else
   //mDAC = std::make_unique<RtAudio>(RtAudio::UNIX_JACK);
+#elif defined OS_LINUX
+  if(mState.mAudioDriverType == kDeviceAlsa)
+    mDAC = std::make_unique<RtAudio>(RtAudio::LINUX_ALSA);
+  else if(mState.mAudioDriverType == kDeviceJack)
+    mDAC = std::make_unique<RtAudio>(RtAudio::UNIX_JACK);
+  else
+    mDAC = std::make_unique<RtAudio>(RtAudio::LINUX_PULSE);
 #else
   #error NOT IMPLEMENTED
 #endif
@@ -396,17 +427,20 @@ bool IPlugAPPHost::TryToChangeAudio()
   int inputID = -1;
   int outputID = -1;
 
+#if RTAUDIO_VERSION_MAJOR < 6
 #if defined OS_WIN
   if(mState.mAudioDriverType == kDeviceASIO)
     inputID = GetAudioDeviceIdx(mState.mAudioOutDev.Get());
   else
     inputID = GetAudioDeviceIdx(mState.mAudioInDev.Get());
-#elif defined OS_MAC
+#elif defined OS_MAC || defined OS_LINUX
   inputID = GetAudioDeviceIdx(mState.mAudioInDev.Get());
 #else
   #error NOT IMPLEMENTED
 #endif
   outputID = GetAudioDeviceIdx(mState.mAudioOutDev.Get());
+  // TODO: do version 6 current device id
+#endif
 
   bool failedToFindDevice = false;
   bool resetToDefault = false;
@@ -419,7 +453,9 @@ bool IPlugAPPHost::TryToChangeAudio()
       inputID = mDefaultInputDev;
 
       if (mAudioInputDevs.size())
+      {
         mState.mAudioInDev.Set(GetAudioDeviceName(inputID).c_str());
+      }
     }
     else
       failedToFindDevice = true;
@@ -434,7 +470,9 @@ bool IPlugAPPHost::TryToChangeAudio()
       outputID = mDefaultOutputDev;
 
       if (mAudioOutputDevs.size())
+      {
         mState.mAudioOutDev.Set(GetAudioDeviceName(outputID).c_str());
+      }
     }
     else
       failedToFindDevice = true;
@@ -449,6 +487,7 @@ bool IPlugAPPHost::TryToChangeAudio()
 
   if (failedToFindDevice)
     MessageBox(gHWND, "Please check your soundcard settings in Preferences", "Error", MB_OK);
+    DBGMSG("Please check your soundcard settings in Preferences\n");
 
   if (inputID != -1 && outputID != -1)
   {
@@ -480,7 +519,7 @@ bool IPlugAPPHost::SelectMIDIDevice(ERoute direction, const char* pPortName)
       {
         return true;
       }
-  #if defined OS_WIN
+  #if defined OS_WIN || defined OS_LINUX
       else
       {
         mMidiIn->openPort(port-1);
@@ -520,7 +559,7 @@ bool IPlugAPPHost::SelectMIDIDevice(ERoute direction, const char* pPortName)
       
       if (port == 0)
         return true;
-#if defined OS_WIN
+#if defined OS_WIN || defined OS_LINUX
       else
       {
         mMidiOut->openPort(port-1);
@@ -559,6 +598,13 @@ void IPlugAPPHost::CloseAudio()
       while (!mAudioDone)
         Sleep(10);
       
+#if RTAUDIO_VERSION_MAJOR >= 6
+      RtAudioErrorType err = mDAC->abortStream();
+      if (err != RTAUDIO_NO_ERROR)
+      {
+        std::cout << mDAC->getErrorText() << std::endl;
+      }
+#else
       try
       {
         mDAC->abortStream();
@@ -567,6 +613,7 @@ void IPlugAPPHost::CloseAudio()
       {
         e.printMessage();
       }
+#endif
     }
     
     mDAC->closeStream();
@@ -588,8 +635,15 @@ bool IPlugAPPHost::InitAudio(uint32_t inId, uint32_t outId, uint32_t sr, uint32_
 
   mBufferSize = iovs; // mBufferSize may get changed by stream
 
+#if RTAUDIO_VERSION_MAJOR >= 6
+  RtAudio::DeviceInfo oinfo = mDAC->getDeviceInfo(outId);
+  RtAudio::DeviceInfo iinfo = mDAC->getDeviceInfo(inId);
+  DBGMSG("\ntrying to start audio stream @ %i sr, %i buffer size\nindev = %i:%s\noutdev = %i:%s\ninputs = %i\noutputs = %i\n",
+         sr, mBufferSize, inId, iinfo.name.c_str(), outId, oinfo.name.c_str(), iParams.nChannels, oParams.nChannels);
+#else
   DBGMSG("\ntrying to start audio stream @ %i sr, %i buffer size\nindev = %i:%s\noutdev = %i:%s\ninputs = %i\noutputs = %i\n",
          sr, mBufferSize, inId, GetAudioDeviceName(inId).c_str(), outId, GetAudioDeviceName(outId).c_str(), iParams.nChannels, oParams.nChannels);
+#endif
 
   RtAudio::StreamOptions options;
   options.flags = RTAUDIO_NONINTERLEAVED;
@@ -606,6 +660,27 @@ bool IPlugAPPHost::InitAudio(uint32_t inId, uint32_t outId, uint32_t sr, uint32_
   mIPlug->SetSampleRate(mSampleRate);
   mIPlug->OnReset();
 
+#if RTAUDIO_VERSION_MAJOR >= 6
+  RtAudioErrorType err = mDAC->openStream(&oParams, iParams.nChannels > 0 ? &iParams : nullptr, RTAUDIO_FLOAT64, sr, &mBufferSize, &AudioCallback, this, &options);
+  if(err != RTAUDIO_NO_ERROR) {
+    std::cout << "Unable to open stream in: " << inId << " out: " << outId << std::endl;
+    return false;
+  }
+
+  for (int i = 0; i < iParams.nChannels; i++)
+  {
+    mInputBufPtrs.Add(nullptr); //will be set in callback
+  }
+
+  for (int i = 0; i < oParams.nChannels; i++)
+  {
+    mOutputBufPtrs.Add(nullptr); //will be set in callback
+  }
+
+  mDAC->startStream();
+
+  mActiveState = mState;
+#else
   try
   {
     mDAC->openStream(&oParams, iParams.nChannels > 0 ? &iParams : nullptr, RTAUDIO_FLOAT64, sr, &mBufferSize, &AudioCallback, this, &options /*, &ErrorCallback */);
@@ -629,7 +704,7 @@ bool IPlugAPPHost::InitAudio(uint32_t inId, uint32_t outId, uint32_t sr, uint32_
     e.printMessage();
     return false;
   }
-
+#endif
   return true;
 }
 
@@ -658,7 +733,10 @@ bool IPlugAPPHost::InitMidi()
   }
 
   mMidiIn->setCallback(&MIDICallback, this);
+#ifndef OS_LINUX
+  // FIXME: Cryptically segfault from the linux branch.
   mMidiIn->ignoreTypes(false, true, false );
+#endif
 
   return true;
 }
@@ -779,7 +857,12 @@ void IPlugAPPHost::MIDICallback(double deltatime, std::vector<uint8_t>* pMsg, vo
 }
 
 // static
+
+#if RTAUDIO_VERSION_MAJOR >= 6
+void IPlugAPPHost::ErrorCallback(RtAudioErrorType type, const std::string &errorText )
+#else
 void IPlugAPPHost::ErrorCallback(RtAudioError::Type type, const std::string &errorText )
+#endif
 {
   //TODO:
 }
