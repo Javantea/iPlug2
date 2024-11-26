@@ -1,4 +1,4 @@
-CFLAGS=-I. -I../glad_GLX/include -ggdb -O2 -Wall
+CFLAGS=-I. -I../glad_GLX/include -ggdb -O2 -Wall -fPIC
 
 ifdef GL2
 CFLAGS += -I../glad_GL2/src -I../glad_GL2/include

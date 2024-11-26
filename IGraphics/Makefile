@@ -1,4 +1,4 @@
-CXXFLAGS=-I. -I../IPlug -I../Dependencies/IGraphics/STB -I../IPlug/Extras -DAPP_API -I../WDL -I../IGraphics -I../IGraphics/Platforms -I../IGraphics/Controls -I../Dependencies/IGraphics/NanoSVG/src -DIGRAPHICS_NANOVG -I../IGraphics/Drawing -I../Dependencies/IGraphics/NanoVG/src -I../WDL/swell -DNOMINMAX -DIGRAPHICS_GL2 -I../Dependencies/IGraphics/xcbt -I../Dependencies/IGraphics/glad_GLX/include -ggdb -O2 -Wall
+CXXFLAGS=-I. -I../IPlug -I../Dependencies/IGraphics/STB -I../IPlug/Extras -DAPP_API -I../WDL -I../IGraphics -I../IGraphics/Platforms -I../IGraphics/Controls -I../Dependencies/IGraphics/NanoSVG/src -DIGRAPHICS_NANOVG -I../IGraphics/Drawing -I../Dependencies/IGraphics/NanoVG/src -I../WDL/swell -DNOMINMAX -DIGRAPHICS_GL2 -I../Dependencies/IGraphics/xcbt -I../Dependencies/IGraphics/glad_GLX/include -ggdb -O2 -Wall -fPIC
 
 SOURCES = ./IGraphics.cpp ./Platforms/IGraphicsLinux.cpp ./IControl.cpp ./IGraphicsEditorDelegate.cpp ./Controls/ITextEntryControl.cpp ./Controls/IPopupMenuControl.cpp ./Controls/IControls.cpp
 
@@ -36,3 +36,6 @@ OBJS = $(subst .cpp,.o,$(SOURCES))
 all: $(OBJS)
 
 ./Platforms/IGraphicsLinux.o: ./Platforms/IGraphicsLinux.cpp ./Platforms/IGraphicsLinux.h
+
+clean:
+	rm -f $(OBJS)
