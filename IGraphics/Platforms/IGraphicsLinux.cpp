@@ -935,6 +935,7 @@ void IGraphicsLinux::WindowHandler(xcb_generic_event_t* evt)
 
 void IGraphicsLinux::SetIntegration(void* mainLoop)
 {
+  DBGMSG("SetIntegration was called\n");
   xcbt_embed* e = static_cast<xcbt_embed*>(mainLoop);
 
   if (!e)

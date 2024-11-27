@@ -1,4 +1,6 @@
-CFLAGS=-I. -I../glad_GLX/include -ggdb -O2 -Wall -fPIC
+CFLAGS=-I. -I../glad_GLX/include -ggdb -O2 -Wall -fPIC -fsanitize=address
+
+GL2=1
 
 ifdef GL2
 CFLAGS += -I../glad_GL2/src -I../glad_GL2/include
@@ -10,3 +12,5 @@ endif
 
 xcbt.o: xcbt.c xcbt.h
 	gcc -c -o xcbt.o xcbt.c -Wall -ggdb -O2 $(CFLAGS)
+clean:
+	rm -f xcbt.o

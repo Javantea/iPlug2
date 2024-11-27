@@ -32,6 +32,10 @@ void* IGEditorDelegate::OpenWindow(void* pParent)
     if (mLastWidth && mLastHeight && mLastScale)
       GetUI()->Resize(mLastWidth, mLastHeight, mLastScale);
   }
+  if (mGraphics && mMainLoop)
+  {
+    mGraphics->SetIntegration(mMainLoop);
+  }
   
   if(mGraphics)
     return mGraphics->OpenWindow(pParent);
@@ -65,6 +69,14 @@ void IGEditorDelegate::SetScreenScale(float scale)
     mGraphics->SetScreenScale(scale);
 }
 
+void IGEditorDelegate::SetIntegration(void* pMainLoop)
+{
+  mMainLoop = pMainLoop;
+
+  if(mGraphics)
+    mGraphics->SetIntegration(pMainLoop);
+}
+
 void IGEditorDelegate::SendControlValueFromDelegate(int ctrlTag, double normalizedValue)
 {
   if(!mGraphics)
@@ -72,7 +84,7 @@ void IGEditorDelegate::SendControlValueFromDelegate(int ctrlTag, double normaliz
 
   IControl* pControl = mGraphics->GetControlWithTag(ctrlTag);
   
-  assert(pControl);
+  //assert(pControl);
   
   if(pControl)
   {
@@ -87,7 +99,7 @@ void IGEditorDelegate::SendControlMsgFromDelegate(int ctrlTag, int msgTag, int d
   
   IControl* pControl = mGraphics->GetControlWithTag(ctrlTag);
   
-  assert(pControl);
+  //assert(pControl);
   
   if(pControl)
   {

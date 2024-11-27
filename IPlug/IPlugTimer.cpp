@@ -14,6 +14,9 @@
  */
 
 #include "IPlugTimer.h"
+#ifdef OS_LINUX
+#include "IPlugTaskThread.h"
+#endif
 
 using namespace iplug;
 

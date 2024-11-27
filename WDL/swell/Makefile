@@ -17,7 +17,7 @@ PKG_CONFIG = pkg-config
 
 COMPILER=GCC
 
-CFLAGS = -pipe -fno-math-errno -fPIC -DPIC -Wall -Wshadow -Wno-unused-function -Wno-multichar -Wtype-limits -Wno-unused-value -fstrict-aliasing
+CFLAGS = -pipe -fno-math-errno -fPIC -DPIC -Wall -Wshadow -Wno-unused-function -Wno-multichar -Wtype-limits -Wno-unused-value -fstrict-aliasing -fsanitize=address
 
 CFLAGS += -DSWELL_MAKING_DYLIB
 

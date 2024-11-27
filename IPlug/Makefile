@@ -1,4 +1,4 @@
-CXXFLAGS=-I. -DAPP_API -I./APP -I../WDL -I../IGraphics -I./Extras -I../IGraphics/Platforms -I../IGraphics/Controls -I../Dependencies/IGraphics/NanoSVG/src -DIGRAPHICS_NANOVG -I../IGraphics/Drawing -I../Dependencies/IGraphics/NanoVG/src -I../WDL/swell -DNOMINMAX -DIGRAPHICS_GL2 -I../Dependencies/IGraphics/xcbt -ggdb -O2 -Wall -fPIC
+CXXFLAGS=-I. -DAPP_API -I./APP -I../WDL -I../IGraphics -I./Extras -I../IGraphics/Platforms -I../IGraphics/Controls -I../Dependencies/IGraphics/NanoSVG/src -DIGRAPHICS_NANOVG -I../IGraphics/Drawing -I../Dependencies/IGraphics/NanoVG/src -I../WDL/swell -DNOMINMAX -DIGRAPHICS_GL2 -I../Dependencies/IGraphics/xcbt -ggdb -O2 -Wall -fPIC -fsanitize=address
 
 SOURCES = ./IPlugPluginBase.cpp ./IPlugPaths.cpp ./Extras/OSC/IPlugOSC.cpp ./Extras/OSC/IPlugOSC_msg.cpp ./Extras/Synth/MidiSynth.cpp ./Extras/Synth/VoiceAllocator.cpp ./Extras/HIIR/PolyphaseIIR2Designer.cpp ./IPlugTimer.cpp ./IPlugParameter.cpp ./IPlugAPIBase.cpp ./IPlugProcessor.cpp
 
@@ -38,3 +38,6 @@ endif
 OBJS = $(subst .cpp,.o,$(SOURCES))
 
 all: $(OBJS)
+
+clean:
+	rm -f $(OBJS)
