@@ -90,6 +90,8 @@
     {
     #if defined OS_MAC
       return (VstIntPtr) VSTPluginMain((audioMasterCallback)hostCallback);
+    #elif defined OS_LINUX
+      return (VstIntPtr) VSTPluginMain((audioMasterCallback)hostCallback);
     #else
       return (int) VSTPluginMain((audioMasterCallback)hostCallback);
     #endif
