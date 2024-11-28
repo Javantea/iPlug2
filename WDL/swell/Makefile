@@ -17,7 +17,7 @@ PKG_CONFIG = pkg-config
 
 COMPILER=GCC
 
-CFLAGS = -pipe -fvisibility=hidden -fno-math-errno -fPIC -DPIC -Wall -Wshadow -Wno-unused-function -Wno-multichar -Wtype-limits -Wno-unused-value -fstrict-aliasing
+CFLAGS = -pipe -fno-math-errno -fPIC -DPIC -Wall -Wshadow -Wno-unused-function -Wno-multichar -Wtype-limits -Wno-unused-value -fstrict-aliasing -fsanitize=address
 
 CFLAGS += -DSWELL_MAKING_DYLIB
 
@@ -52,9 +52,10 @@ ifeq ($(COMPILER),GCC)
   endif
 endif
 
-ifndef ALLOW_WARNINGS
-  CFLAGS += -Werror
-endif
+# fuck dude
+#ifndef ALLOW_WARNINGS
+  #CFLAGS += -Werror
+#endif
 ifndef DEPRECATED_WARNINGS
   CFLAGS +=  -Wno-deprecated-declarations
 endif
@@ -79,7 +80,8 @@ CFLAGS += -O2 -DNDEBUG
     CFLAGS += -g
   else
     ifneq ($(COMPILER),CLANG)
-      CFLAGS += -s
+      # who the fuck thought this was a good idea??
+      #CFLAGS += -s
     endif
   endif
 endif

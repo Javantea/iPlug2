@@ -16,6 +16,9 @@
 #else
 extern float GetScaleForHWND(HWND hWnd);
 #endif
+#ifdef OS_LINUX
+const int TITLE_BAR_OFFSET = 17;
+#endif
 
 using namespace iplug;
 
@@ -35,6 +38,22 @@ IPlugAPP::IPlugAPP(const InstanceInfo& info, const Config& config)
   SetBlockSize(DEFAULT_BLOCK_SIZE);
   
   CreateTimer();
+
+#ifdef OS_LINUX
+  // Every 50ms check to see if the main window needs to be resized.
+  // This fixes basically all the issues related to resizing the window on Linux.
+  mResizeTimer = std::unique_ptr<Timer>(Timer::Create([&](Timer& timer) {
+    if (mNeedResize)
+    {
+      int viewWidth = GetEditorWidth();
+      int viewHeight = GetEditorHeight();
+      RECT r;
+      GetWindowRect(gHWND, &r);
+      SetWindowPos(gHWND, 0, r.left, r.bottom - viewHeight - TITLE_BAR_OFFSET, viewWidth, viewHeight + TITLE_BAR_OFFSET, 0);
+      mNeedResize = false;
+    }
+  }, 50));
+#endif
 }
 
 bool IPlugAPP::EditorResize(int viewWidth, int viewHeight)
@@ -132,11 +151,15 @@ void IPlugAPP::AppProcess(double** inputs, double** outputs, int nFrames)
   
   if(mMidiMsgsFromCallback.ElementsAvailable())
   {
+    //std::cout << "mMidiMsgsFromCallback " << mMidiMsgsFromCallback.ElementsAvailable() << std::endl;
     IMidiMsg msg;
     
     while (mMidiMsgsFromCallback.Pop(msg))
     {
+      // FIXME: When both input and output are connected to midi thru (yes this can happen) we get an issue here that needs to be resolved.
+      // Detect and Fix!
       ProcessMidiMsg(msg);
+      //std::cout << "processed " << ((int)msg.mStatus) << std::endl;
       mMidiMsgsFromProcessor.Push(msg); // queue incoming MIDI for UI
     }
   }

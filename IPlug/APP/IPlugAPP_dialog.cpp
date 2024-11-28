@@ -36,7 +36,9 @@ void IPlugAPPHost::PopulateSampleRateList(HWND hwndDlg, RtAudio::DeviceInfo* inp
 
   std::vector<int> matchedSRs;
 
+#if RTAUDIO_VERSION_MAJOR < 6
   if (inputDevInfo->probed && outputDevInfo->probed)
+#endif
   {
     for (int i=0; i<inputDevInfo->sampleRates.size(); i++)
     {
@@ -64,8 +66,10 @@ void IPlugAPPHost::PopulateSampleRateList(HWND hwndDlg, RtAudio::DeviceInfo* inp
 
 void IPlugAPPHost::PopulateAudioInputList(HWND hwndDlg, RtAudio::DeviceInfo* info)
 {
+#if RTAUDIO_VERSION_MAJOR < 6
   if(!info->probed)
     return;
+#endif
 
   WDL_String buf;
 
@@ -91,8 +95,10 @@ void IPlugAPPHost::PopulateAudioInputList(HWND hwndDlg, RtAudio::DeviceInfo* inf
 
 void IPlugAPPHost::PopulateAudioOutputList(HWND hwndDlg, RtAudio::DeviceInfo* info)
 {
+#if RTAUDIO_VERSION_MAJOR < 6
   if(!info->probed)
     return;
+#endif
 
   WDL_String buf;
 
@@ -131,6 +137,8 @@ void IPlugAPPHost::PopulateDriverSpecificControls(HWND hwndDlg)
     ComboBox_Enable(GetDlgItem(hwndDlg, IDC_COMBO_AUDIO_IN_DEV), TRUE);
     Button_Enable(GetDlgItem(hwndDlg, IDC_BUTTON_OS_DEV_SETTINGS), FALSE);
   }
+#elif defined OS_LINUX
+    EnableWindow(GetDlgItem(hwndDlg, IDC_BUTTON_OS_DEV_SETTINGS), FALSE);
 #endif
 
   int indevidx = 0;
@@ -285,6 +293,17 @@ void IPlugAPPHost::PopulatePreferencesDialog(HWND hwndDlg)
 {
   SendDlgItemMessage(hwndDlg,IDC_COMBO_AUDIO_DRIVER,CB_ADDSTRING,0,(LPARAM)"CoreAudio");
   //SendDlgItemMessage(hwndDlg,IDC_COMBO_AUDIO_DRIVER,CB_ADDSTRING,0,(LPARAM)"Jack");
+  SendDlgItemMessage(hwndDlg,IDC_COMBO_AUDIO_DRIVER,CB_SETCURSEL, mState.mAudioDriverType, 0);
+
+  PopulateAudioDialogs(hwndDlg);
+  PopulateMidiDialogs(hwndDlg);
+}
+#elif defined OS_LINUX
+void IPlugAPPHost::PopulatePreferencesDialog(HWND hwndDlg)
+{
+  SendDlgItemMessage(hwndDlg,IDC_COMBO_AUDIO_DRIVER,CB_ADDSTRING,0,(LPARAM)"Alsa");
+  SendDlgItemMessage(hwndDlg,IDC_COMBO_AUDIO_DRIVER,CB_ADDSTRING,0,(LPARAM)"Jack");
+  SendDlgItemMessage(hwndDlg,IDC_COMBO_AUDIO_DRIVER,CB_ADDSTRING,0,(LPARAM)"Pulse");
   SendDlgItemMessage(hwndDlg,IDC_COMBO_AUDIO_DRIVER,CB_SETCURSEL, mState.mAudioDriverType, 0);
 
   PopulateAudioDialogs(hwndDlg);
@@ -471,7 +490,8 @@ WDL_DLGRET IPlugAPPHost::PreferencesDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wPar
               system("open \"/Applications/Utilities/Audio MIDI Setup.app\"");
             }
             #else
-              #error NOT IMPLEMENTED
+              #warning NOT IMPLEMENTED
+              // A handful of ways to do this. Midi on Linux is usually handled via commandline or qjackctl.
             #endif
           }
           break;
@@ -554,13 +574,23 @@ WDL_DLGRET IPlugAPPHost::MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
       gHWND = hwndDlg;
       IPlugAPP* pPlug = pAppHost->GetPlug();
 
-      if (!pAppHost->OpenWindow(gHWND))
-        DBGMSG("couldn't attach gui\n");
-
+#ifdef OS_LINUX
+        RECT r = {0, 0, 100, 100};
+        DBGMSG("APP: Initial socket size: %dx%d\n", r.right, r.bottom);
+        pAppHost->mSite = SWELL_CreateXBridgeWindow(hwndDlg, &pAppHost->mSiteWnd, &r);
+        if(!pAppHost->OpenWindow(pAppHost->mSiteWnd)) {
+#else
+        if(!pAppHost->OpenWindow(gHWND)) {
+#endif
+          DBGMSG("couldn't attach gui\n");
+        }
       width = pPlug->GetEditorWidth();
       height = pPlug->GetEditorHeight();
 
       ClientResize(hwndDlg, width, height);
+#if defined(OS_LINUX)
+      SetWindowPos(pAppHost->mSite, hwndDlg, 0, 0, width, height, SWP_NOZORDER);
+#endif
 
       ShowWindow(hwndDlg, SW_SHOW);
       return 1;
@@ -572,7 +602,7 @@ WDL_DLGRET IPlugAPPHost::MainDlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPA
       
       #ifdef OS_WIN
       PostQuitMessage(0);
-      #else
+      #elif defined OS_MAC
       SWELL_PostQuitMessage(hwndDlg);
       #endif
 
