@@ -28,6 +28,8 @@ set(SRC_FILES
 source_group(TREE ${dir} FILES ${SRC_FILES})
 set(RES_FILES
   "${dir}/resources/fonts/Roboto-Regular.ttf"
+  "${dir}/resources/fonts/forkawesome-webfont.ttf"
+  "${dir}/resources/fonts/fontaudio.ttf"
   "${dir}/resources/img/button@2x.png"
   "${dir}/resources/img/button.png"
   "${dir}/resources/img/font@2x.png"
