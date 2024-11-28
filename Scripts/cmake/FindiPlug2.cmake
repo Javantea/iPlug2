@@ -338,12 +338,36 @@ include("${IPLUG2_CMAKE_DIR}/IGraphics.cmake")
 # Reaper Extension #
 ####################
 
+  set(swell_src
+    swell.h
+    swell.cpp
+    swell-appstub-generic.cpp
+    swell-dlg-generic.cpp
+    swell-gdi-generic.cpp
+    swell-gdi-lice.cpp
+    swell-ini.cpp
+    swell-kb-generic.cpp
+    swell-menu-generic.cpp
+    swell-miscdlg-generic.cpp
+    swell-misc-generic.cpp
+    swell-wnd-generic.cpp
+    swell-generic-gdk.cpp
+  )
+  list(TRANSFORM swell_src PREPEND "${WDL_DIR}/swell/")
+
+# TODO: optional
+pkg_check_modules(Glib_20 REQUIRED IMPORTED_TARGET "glib-2.0")
+pkg_check_modules(Gtk_30 REQUIRED IMPORTED_TARGET "gtk+-3.0")
+pkg_check_modules(Gdk_30 REQUIRED IMPORTED_TARGET "gdk-3.0")
+
 add_library(iPlug2_REAPER INTERFACE)
 set(_sdk ${IPLUG2_DIR}/IPlug/ReaperExt)
 iplug_target_add(iPlug2_REAPER INTERFACE
   INCLUDE "${_sdk}" "${IPLUG_DEPS}/REAPER_SDK"
-  DEFINE "REAPER_PLUGIN"
+  DEFINE "REAPER_PLUGIN" "SWELL_COMPILED" "SWELL_SUPPORT_GTK" "SWELL_TARGET_GDK=3" "SWELL_FONTCONFIG" SWELL_LICE_GDI SWELL_FREETYPE "_FILE_OFFSET_BITS=64" WDL_ALLOW_UNSIGNED_DEFAULT_CHAR SWELL_MAKING_DYLIB
+  SOURCE "${swell_src}"
   #LINK iPlug2_VST2
+  LINK PkgConfig::Gtk_30 PkgConfig::Gdk_30 PkgConfig::Glib_20 "X11" "Xi" "GLX"
 )
 
 ###############################
