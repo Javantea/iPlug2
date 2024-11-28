@@ -100,14 +100,14 @@ list(APPEND _src
   "${sdk}/updatehandler.cpp"
   "${sdk}/updatehandler.h"
 )
-# Timer isn't implemented on Linux
-if (NOT (CMAKE_SYSTEM_NAME MATCHES "Linux"))
+# This "if not" logic from previous caused this error in the vst3s. Now all platforms are supported and need this.
+# _ZN9Steinberg25InjectCreateTimerFunctionEPFPNS_5TimerEPNS_14ITimerCallbackEjE
   list(APPEND _src
     "${sdk}/timer.cpp"
     "${sdk}/timer.h"
   )
-  
-else()
+
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
   list(APPEND _def "SMTG_OS_LINUX")
 endif()
 
