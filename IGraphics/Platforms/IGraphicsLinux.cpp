@@ -7,7 +7,7 @@
 
  ==============================================================================
 */
-
+#include <iostream>
 #include <stddef.h>
 #include <wdlutf8.h>
 
@@ -180,6 +180,7 @@ void IGraphicsLinux::Paint()
     Draw(rects);
     xcbt_window_draw_end(mPlugWnd);
   }
+  std::cout << "paint process" << std::endl;
 }
 
 void IGraphicsLinux::DrawResize()
@@ -1056,6 +1057,8 @@ void* IGraphicsLinux::OpenWindow(void* pParent)
 #elif defined VST3_API
   xcbt_window_set_xembed_info(mPlugWnd);
 #elif defined LV2_API
+  xcbt_window_set_xembed_info(mPlugWnd);
+#elif defined CLAP_API
   xcbt_window_set_xembed_info(mPlugWnd);
 #else
   #error "Map or not to map... that is the question"

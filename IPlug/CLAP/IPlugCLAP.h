@@ -21,6 +21,10 @@
 #include "IPlugProcessor.h"
 #include "plugin.hh"
 
+#if defined OS_LINUX
+#include "xcbt.h"
+#endif
+
 #include "config.h"   // This is your plugin's config.h.
 
 BEGIN_IPLUG_NAMESPACE
@@ -203,6 +207,10 @@ private:
   
   void* mWindow = nullptr;
   bool mGUIOpen = false;
+#ifdef OS_LINUX
+  xcbt_embed* mEmbed;
+  void OnIdle() override;
+#endif
 };
 
 IPlugCLAP* MakePlug(const InstanceInfo& info);
