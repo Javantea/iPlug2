@@ -35,6 +35,8 @@ void IPlugSideChain::OnIdle()
   mInputPeakSender.TransmitData(*this);
   mOutputPeakSender.TransmitData(*this);
   
+  // It will crash if these are null.
+  if (!mInputMeter || !mOutputMeter) return;
   if (mSendUpdate)
   {
     if(GetUI())
