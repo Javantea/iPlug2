@@ -192,7 +192,7 @@ clap_process_status IPlugCLAP::process(const clap_process* pProcess) noexcept
 {
   IMidiMsg msg;
   SysExData sysEx;
-  
+
   // Transport Info
   if (pProcess->transport)
   {
@@ -867,8 +867,8 @@ bool IPlugCLAP::guiSetParent(const clap_window* pWindow) noexcept
   /*
    * important
   */
-  mEmbed = xcbt_embed_idle();
-  SetIntegration(mEmbed);
+  //mEmbed = xcbt_embed_idle();
+  //SetIntegration(mEmbed);
   // TODO: test wayland
   if(0 == strcmp(pWindow->api, CLAP_WINDOW_API_WAYLAND))
   {
@@ -931,18 +931,6 @@ bool IPlugCLAP::guiHide() noexcept
   }
 }
 
-#ifdef OS_LINUX
-void IPlugCLAP::OnIdle()
-{
-  if (HasUI())
-  {
-    if (mEmbed)
-    {
-      xcbt_embed_idle_cb(mEmbed);
-    }
-  }
-}
-#endif
 
 bool IPlugCLAP::guiCanResize() const noexcept
 {

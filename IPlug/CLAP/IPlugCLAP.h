@@ -38,7 +38,7 @@ struct InstanceInfo
 
 // Set the level of host checking based on if this is debug build
 
-#ifdef _DEBUG
+#if defined _DEBUG || defined DEBUG
 using ClapPluginHelper = clap::helpers::Plugin<clap::helpers::MisbehaviourHandler::Terminate, clap::helpers::CheckingLevel::Maximal>;
 using ClapHost = clap::helpers::HostProxy<clap::helpers::MisbehaviourHandler::Terminate, clap::helpers::CheckingLevel::Maximal>;
 #else
@@ -100,6 +100,11 @@ public:
   void SetLatency(int samples) override;
   bool SendMidiMsg(const IMidiMsg& msg) override;
   bool SendSysEx(const ISysEx& msg) override;
+
+//protected:
+  // Not supported by reaper as far as I can tell.
+  //bool implementsTimerSupport() const noexcept override { return true; }
+  //void onTimer(clap_id timerId) noexcept override;
 
 private:
   // clap_plugin
@@ -209,7 +214,6 @@ private:
   bool mGUIOpen = false;
 #ifdef OS_LINUX
   xcbt_embed* mEmbed;
-  void OnIdle() override;
 #endif
 };
 

@@ -112,6 +112,11 @@ IGraphicsNanoVG::Bitmap::Bitmap(IGraphicsNanoVG* pGraphics, NVGcontext* pContext
   mGraphics = pGraphics;
   mVG = pContext;
   mFBO = nvgCreateFramebuffer(pContext, width, height, 0);
+  if (mFBO == 0)
+  {
+    // Debug time
+    printf("Failed to create framebuffer: %08x\n", glGetError());
+  }
   
   nvgBindFramebuffer(mFBO);
   

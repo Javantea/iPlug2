@@ -180,7 +180,6 @@ void IGraphicsLinux::Paint()
     Draw(rects);
     xcbt_window_draw_end(mPlugWnd);
   }
-  std::cout << "paint process" << std::endl;
 }
 
 void IGraphicsLinux::DrawResize()
@@ -936,7 +935,7 @@ void IGraphicsLinux::WindowHandler(xcb_generic_event_t* evt)
 
 void IGraphicsLinux::SetIntegration(void* mainLoop)
 {
-  DBGMSG("SetIntegration was called\n");
+  //DBGMSG("SetIntegration was called\n");
   xcbt_embed* e = static_cast<xcbt_embed*>(mainLoop);
 
   if (!e)
@@ -966,7 +965,8 @@ void* IGraphicsLinux::OpenWindow(void* pParent)
   xcbt_rect r = {0, 0, static_cast<int16_t>(WindowWidth()), static_cast<int16_t>(WindowHeight())};
   xcb_window_t xprt = (intptr_t) pParent;
   
-#ifdef APP_API
+#if defined APP_API || defined CLAP_API
+  // CLAP is using xcbt_embed_glib for the timer. How does it work? I am not fully sure. It definitely needs the xcbt_window_map like APP_API. So something must be going on in the xcbt_embed_glib to make it regularly call the necessary callback.
   if (!mEmbed)
   {
     SetIntegration(xcbt_embed_glib());
@@ -1059,7 +1059,9 @@ void* IGraphicsLinux::OpenWindow(void* pParent)
 #elif defined LV2_API
   xcbt_window_set_xembed_info(mPlugWnd);
 #elif defined CLAP_API
-  xcbt_window_set_xembed_info(mPlugWnd);
+  // TODO: Figure this out when we have periodic calls to xcbt.
+  xcbt_window_map(mPlugWnd);
+  //xcbt_window_set_xembed_info(mPlugWnd);
 #else
   #error "Map or not to map... that is the question"
 #endif
