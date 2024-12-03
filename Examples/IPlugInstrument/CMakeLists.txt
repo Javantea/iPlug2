@@ -53,6 +53,10 @@ add_library(VST2 MODULE ${SRC_FILES} ${RES_FILES})
 iplug_target_add(VST2 PUBLIC LINK _base RESOURCE ${RES_FILES})
 iplug_configure_target(VST2 vst2)
 
+add_library(CLAP MODULE ${SRC_FILES} ${RES_FILES})
+iplug_target_add(CLAP PUBLIC LINK _base RESOURCE ${RES_FILES})
+iplug_configure_target(CLAP clap)
+
 add_library(VST3 MODULE ${SRC_FILES} ${RES_FILES})
 iplug_target_add(VST3 PUBLIC LINK _base RESOURCE ${RES_FILES})
 iplug_configure_target(VST3 vst3)

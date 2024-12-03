@@ -42,6 +42,6 @@ iplug_target_add(_base INTERFACE
 target_compile_features(_base INTERFACE cxx_std_17)
 
 add_library(Web MODULE ${SRC_FILES} ${RES_FILES})
-iplug_target_add(VST3 PUBLIC LINK _base RESOURCE ${RES_FILES})
+iplug_target_add(Web PUBLIC LINK _base RESOURCE ${RES_FILES})
 iplug_configure_target(Web web)
 
