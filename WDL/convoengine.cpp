@@ -28,6 +28,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+
+// Code from IPlugConvoEngine to match the float size.
+#ifdef SAMPLE_TYPE_FLOAT
+  #define WDL_FFT_REALSIZE 4
+#else
+  #define WDL_FFT_REALSIZE 8
+#endif
 #include "convoengine.h"
 
 #include "denormal.h"

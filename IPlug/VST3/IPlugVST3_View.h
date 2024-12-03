@@ -157,7 +157,7 @@ public:
   #ifdef OS_LINUX
     auto rloop = iplug::IPlugVST3_RunLoop::Create(frame);
     rloop->CreateTimer([&]() { mOwner.OnIdle(); }, 20);
-    // No-op weird..
+    // important part of the gui
     mOwner.SetIntegration(rloop);
   #endif
 

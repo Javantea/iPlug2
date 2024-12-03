@@ -7,11 +7,11 @@ cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 # To setup the build (change CMAKE_BUILD_TYPE as desired):
 #   cmake -S . -B build-linux -DCMAKE_BUILD_TYPE=Debug
 # To build the VST2 version:
-#   cmake --build build-linux --target IPlugDrumSynth-vst2
+#   cmake --build build-linux --target IPlugConvoEngine-vst2
 # To build the VST3 version:
-#   cmake --build build-linux --target IPlugDrumSynth-vst3
+#   cmake --build build-linux --target IPlugConvoEngine-vst3
 
-project(IPlugDrumSynth VERSION 1.0.0)
+project(IPlugConvoEngine VERSION 1.0.0)
 
 set(IPLUG2_DIR ${CMAKE_SOURCE_DIR}/../../)
 include(${IPLUG2_DIR}/iPlug2.cmake)
@@ -20,18 +20,19 @@ find_package(iPlug2 REQUIRED)
 set(dir "${CMAKE_SOURCE_DIR}")
 set(SRC_FILES
   "${dir}/config.h"
-  "${dir}/IPlugDrumSynth.h"
-  "${dir}/IPlugDrumSynth.cpp"
-  "${dir}/IPlugDrumSynth_DSP.h"
+  "${dir}/IPlugConvoEngine.h"
+  "${dir}/IPlugConvoEngine.cpp"
 )
 source_group(TREE ${dir} FILES ${SRC_FILES})
-set(RES_FILES
-  "${dir}/resources/fonts/Roboto-Regular.ttf"
-)
+#set(RES_FILES
+#  "${dir}/resources/fonts/Roboto-Regular.ttf"
+#)
 source_group(TREE "${dir}/resources" PREFIX Resources FILES ${RES_FILES})
 
 # Disable compiler-dependent C++ extension features (optional, but recommended for code portability)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+include("${IPLUG2_CMAKE_DIR}/WDL.cmake")
 
 # While not required, creating a base interface for includes and settings seems like a good idea.
 add_library(_base INTERFACE)
@@ -39,7 +40,7 @@ add_library(_base INTERFACE)
 # linking libraries, adding resources, setting compile options, etc.
 iplug_target_add(_base INTERFACE
   INCLUDE ${dir} ${dir}/resources
-  LINK iPlug2_Synth iPlug2_NANOVG iPlug2_GL2)
+  LINK _wdl iPlug2_NANOVG iPlug2_GL2)
 # Use C++ 14 standard
 target_compile_features(_base INTERFACE cxx_std_17)
 

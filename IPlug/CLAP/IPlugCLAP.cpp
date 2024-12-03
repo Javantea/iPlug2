@@ -50,6 +50,10 @@ IPlugCLAP::IPlugCLAP(const InstanceInfo& info, const Config& config)
   mAudioIO64.Resize(nChans);
   
   SetHost(info.mHost->name, version);
+#ifdef OS_LINUX
+  // we could check for ui here
+  mEmbed = 0;
+#endif
   CreateTimer();
 }
 
@@ -188,7 +192,7 @@ clap_process_status IPlugCLAP::process(const clap_process* pProcess) noexcept
 {
   IMidiMsg msg;
   SysExData sysEx;
-  
+
   // Transport Info
   if (pProcess->transport)
   {
@@ -844,6 +848,10 @@ bool IPlugCLAP::guiIsApiSupported(const char* api, bool isFloating) noexcept
   return !isFloating && !strcmp(api, CLAP_WINDOW_API_COCOA);
 #elif defined OS_WIN
   return !isFloating && !strcmp(api, CLAP_WINDOW_API_WIN32);
+#elif defined OS_LINUX
+  bool v = !isFloating && (!strcmp(api, CLAP_WINDOW_API_X11) || !strcmp(api, CLAP_WINDOW_API_WAYLAND));
+  std::cout << "Wayland or X11? " << api << " " << v << " " << isFloating << std::endl;
+  return v;
 #else
 #error Not Implemented!
 #endif
@@ -855,6 +863,24 @@ bool IPlugCLAP::guiSetParent(const clap_window* pWindow) noexcept
   return GUIWindowAttach(pWindow->cocoa);
 #elif defined OS_WIN
   return GUIWindowAttach(pWindow->win32);
+#elif defined OS_LINUX
+  /*
+   * important
+  */
+  //mEmbed = xcbt_embed_idle();
+  //SetIntegration(mEmbed);
+  // TODO: test wayland
+  if(0 == strcmp(pWindow->api, CLAP_WINDOW_API_WAYLAND))
+  {
+    std::cout << "Wayland" << std::endl;
+    return GUIWindowAttach(pWindow->ptr);
+  }
+  if(0 == strcmp(pWindow->api, CLAP_WINDOW_API_X11))
+  {
+    std::cout << "X11" << std::endl;
+    return GUIWindowAttach((void *)pWindow->x11);
+  }
+  return false;
 #else
 #error Not Implemented!
 #endif
@@ -875,6 +901,7 @@ void IPlugCLAP::guiDestroy() noexcept
   CloseWindow();
   mGUIOpen = false;
   mWindow = nullptr;
+  mEmbed = nullptr;
 }
 
 bool IPlugCLAP::guiShow() noexcept
@@ -903,6 +930,7 @@ bool IPlugCLAP::guiHide() noexcept
     return false;
   }
 }
+
 
 bool IPlugCLAP::guiCanResize() const noexcept
 {

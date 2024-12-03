@@ -2,7 +2,7 @@
 #include "IPlug_include_in_plug_src.h"
 
 IPlugSideChain::IPlugSideChain(const InstanceInfo& info)
-: Plugin(info, MakeConfig(kNumParams, kNumPresets))
+: iplug::Plugin(info, MakeConfig(kNumParams, kNumPresets))
 {
   SetChannelLabel(ERoute::kInput, 0, "Main L");
   SetChannelLabel(ERoute::kInput, 1, "Main R");
@@ -35,6 +35,8 @@ void IPlugSideChain::OnIdle()
   mInputPeakSender.TransmitData(*this);
   mOutputPeakSender.TransmitData(*this);
   
+  // It will crash if these are null.
+  if (!mInputMeter || !mOutputMeter) return;
   if (mSendUpdate)
   {
     if(GetUI())
