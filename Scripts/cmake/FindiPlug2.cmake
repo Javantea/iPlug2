@@ -359,6 +359,7 @@ include("${IPLUG2_CMAKE_DIR}/IGraphics.cmake")
 pkg_check_modules(Glib_20 REQUIRED IMPORTED_TARGET "glib-2.0")
 pkg_check_modules(Gtk_30 REQUIRED IMPORTED_TARGET "gtk+-3.0")
 pkg_check_modules(Gdk_30 REQUIRED IMPORTED_TARGET "gdk-3.0")
+pkg_check_modules(Webkit2Gtk_40 IMPORTED_TARGET "webkit2gtk-4.0")
 
 add_library(iPlug2_REAPER INTERFACE)
 set(_sdk ${IPLUG2_DIR}/IPlug/ReaperExt)
@@ -391,10 +392,20 @@ iplug_target_add(iPlug2_HIIR INTERFACE
   SOURCE "${IPLUG_SRC}/Extras/HIIR/PolyphaseIIR2Designer.cpp")
 iplug_source_tree(iPlug2_HIIR)
 
+add_library(jnl STATIC ${WDL_DIR}/jnetlib/asyncdns.cpp
+  ${WDL_DIR}/jnetlib/connection.cpp
+  ${WDL_DIR}/jnetlib/httpget.cpp
+  ${WDL_DIR}/jnetlib/httpserv.cpp
+  ${WDL_DIR}/jnetlib/listen.cpp
+  ${WDL_DIR}/jnetlib/util.cpp)
+
 add_library(iPlug2_OSC INTERFACE)
 iplug_target_add(iPlug2_OSC INTERFACE
   INCLUDE ${IPLUG_SRC}/Extras/OSC
-  SOURCE ${IPLUG_SRC}/Extras/OSC/IPlugOSC_msg.cpp)
+  SOURCE ${IPLUG_SRC}/Extras/OSC/IPlugOSC_msg.cpp
+  ${IPLUG_SRC}/Extras/OSC/IPlugOSC.cpp
+  LINK jnl)
+
 iplug_source_tree(iPlug2_OSC)
 
 add_library(iPlug2_Synth INTERFACE)
@@ -405,6 +416,14 @@ iplug_target_add(iPlug2_Synth INTERFACE
     "${IPLUG_SRC}/Extras/Synth/VoiceAllocator.cpp")
 iplug_source_tree(iPlug2_Synth)
 
+add_library(iPlug2_WebView INTERFACE)
+iplug_target_add(iPlug2_WebView INTERFACE
+  INCLUDE "${IPLUG_SRC}/Extras/WebView" "${IPLUG2_DIR}/Dependencies/Extras/nlohmann"
+  SOURCE ${IPLUG_SRC}/Extras/WebView/IPlugWebViewEditorDelegate.cpp
+  ${IPLUG_SRC}/Extras/WebView/IPlugWebView_lin.cpp
+  LINK PkgConfig::Webkit2Gtk_40 "X11" "Xi" "GLX"
+  )
+iplug_source_tree(iPlug2_WebView)
 
 #! iplug_configure_target : Configure a target for the given output type
 #
