@@ -821,6 +821,8 @@ void IGraphicsLinux::WindowHandler(xcb_generic_event_t* evt)
           RequestFocus();
         }
         xcbt_flush(mX);
+        // Important to turn this to false because without it the cursor gets moved every time you hold the mouse down (like when you're trying to test the keyboard).
+        mCursorLock = false;
         break;
       }
       case XCB_MOTION_NOTIFY:
