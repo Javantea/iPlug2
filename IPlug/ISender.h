@@ -21,6 +21,7 @@
 #include "IPlugPlatform.h"
 #include "IPlugQueue.h"
 #include <array>
+#include <mutex>
 
 #if defined OS_IOS || defined OS_MAC
 #include <Accelerate/Accelerate.h>
@@ -69,6 +70,7 @@ public:
   /** Pushes a data element onto the queue. This can be called on the realtime audio thread. */
   void PushData(const ISenderData<MAXNC, T>& d)
   {
+    std::lock_guard<std::mutex> lock(mQueueMutex);
     mQueue.Push(d);
   }
 
@@ -76,6 +78,7 @@ public:
    *  This must be called on the main thread - typically in MyPlugin::OnIdle() */
   void TransmitData(IEditorDelegate& dlg)
   {
+    std::lock_guard<std::mutex> lock(mQueueMutex);
     while(mQueue.ElementsAvailable())
     {
       ISenderData<MAXNC, T> d;
@@ -90,6 +93,7 @@ public:
    @param ctrlTags A list of control tags that should receive the updates from this sender */
   void TransmitDataToControlsWithTags(IEditorDelegate& dlg, const std::initializer_list<int>& ctrlTags)
   {
+    std::lock_guard<std::mutex> lock(mQueueMutex);
     while(mQueue.ElementsAvailable())
     {
       ISenderData<MAXNC, T> d;
@@ -105,6 +109,7 @@ public:
 
 private:
   IPlugQueue<ISenderData<MAXNC, T>> mQueue {QUEUE_SIZE};
+  std::mutex mQueueMutex;
 };
 
 /** IPeakSender is a utility class which can be used to defer peak data from sample buffers for sending to the GUI
